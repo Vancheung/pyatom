@@ -505,7 +505,7 @@ class BaseAXUIElement(_a11y.AXUIElement):
         self._queueEvent(Quartz.CGEventPost,
                          (Quartz.kCGSessionEventTap, buttonUp))
 
-    def _leftMouseDragged(self, stopCoord, strCoord, speed):
+    def _leftMouseDragged(self, stopCoord, strCoord, speed,right=False):
         """Private method to handle generic mouse left button dragging and
         dropping.
 
@@ -558,8 +558,18 @@ class BaseAXUIElement(_a11y.AXUIElement):
                     currcoord,
                     Quartz.kCGMouseButtonLeft
                 )
-                Quartz.CGEventPost(Quartz.CoreGraphics.kCGHIDEventTap,
-                                   dragLeftButton)
+                dragRightButton = Quartz.CGEventCreateMouseEvent(
+                    None,
+                    Quartz.kCGEventRightMouseDragged,
+                    currcoord,
+                    Quartz.kCGMouseButtonLeft
+                )
+                if right:
+                    Quartz.CGEventPost(Quartz.CoreGraphics.kCGHIDEventTap,
+                                       dragRightButton)
+                else:
+                    Quartz.CGEventPost(Quartz.CoreGraphics.kCGHIDEventTap,
+                                       dragLeftButton)
                 # Wait for reponse of system
                 time.sleep(speed)
         else:
@@ -633,7 +643,7 @@ class BaseAXUIElement(_a11y.AXUIElement):
 
         """
         def _matchFocused(retelem, **kwargs):
-          return retelem if retelem._match(**kwargs) else None
+            return retelem if retelem._match(**kwargs) else None
 
         retelem = None
         return self._waitFor(timeout, 'AXFocusedUIElementChanged',
@@ -1013,6 +1023,23 @@ class NativeUIElement(BaseAXUIElement):
         """
         return self._sendKeyWithModifiers(keychr, modifiers, True)
 
+    def moveMouse(self, dest_coord, interval=0.5):
+        """Move mouse without modifiers pressed.
+
+        Parameters: coordinates to click on screen (tuple (x, y))
+                    dest coordinates to drag to (tuple (x, y))
+                    interval to send event of btn down, drag and up
+        Returns: None
+        """
+        eventMove = Quartz.kCGEventMouseMoved
+        buttonMove = Quartz.CGEventCreateMouseEvent(None,
+                                                    eventMove,
+                                                    dest_coord,
+                                                    eventMove)
+        self._queueEvent(Quartz.CGEventPost,
+                         (Quartz.kCGSessionEventTap, buttonMove))
+        self._postQueuedEvents(interval=interval)
+
     def dragMouseButtonLeft(self, coord, dest_coord, interval=0.5):
         """Drag the left mouse button without modifiers pressed.
 
@@ -1024,6 +1051,20 @@ class NativeUIElement(BaseAXUIElement):
 
         modFlags = 0
         self._queueMouseButton(coord, Quartz.kCGMouseButtonLeft, modFlags,
+                               dest_coord=dest_coord)
+        self._postQueuedEvents(interval=interval)
+
+    def dragMouseButtonRight(self, coord, dest_coord, interval=0.5):
+        """Drag the right mouse button without modifiers pressed.
+
+        Parameters: coordinates to click on screen (tuple (x, y))
+                    dest coordinates to drag to (tuple (x, y))
+                    interval to send event of btn down, drag and up
+        Returns: None
+        """
+
+        modFlags = 0
+        self._queueMouseButton(coord, Quartz.kCGMouseButtonRight, modFlags,
                                dest_coord=dest_coord)
         self._postQueuedEvents(interval=interval)
 
@@ -1105,6 +1146,17 @@ class NativeUIElement(BaseAXUIElement):
         Returns: None
         """
         self._leftMouseDragged(stopCoord, strCoord, speed)
+
+    def rightMouseDragged(self, stopCoord, strCoord=(0, 0), speed=1):
+        """Click the left mouse button and drag object.
+
+        Parameters: stopCoord, the position of dragging stopped
+                    strCoord, the position of dragging started
+                    (0,0) will get current position
+                    speed is mouse moving speed, 0 to unlimited
+        Returns: None
+        """
+        self._leftMouseDragged(stopCoord, strCoord, speed,right=True)
 
     def doubleClickMouse(self, coord):
         """Double-click primary mouse button.
