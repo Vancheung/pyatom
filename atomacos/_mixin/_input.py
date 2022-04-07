@@ -13,6 +13,26 @@ class Mouse(object):
         mouse.moveTo(*coord)
         mouse.dragTo(*dest_coord, duration=interval, button="left")
 
+    def moveMouse(self, coord, interval=0.5):
+        """Move mouse without modifiers pressed.
+        Parameters: coordinates to click on screen (tuple (x, y))
+                    dest coordinates to drag to (tuple (x, y))
+                    interval to send event of btn down, drag and up
+        Returns: None
+        """
+        mouse.moveTo(*coord)
+
+    def dragMouseButtonRight(self, coord, dest_coord, interval=0.5):
+        """Drag the right mouse button without modifiers pressed.
+
+        Parameters: coordinates to click on screen (tuple (x, y))
+                    dest coordinates to drag to (tuple (x, y))
+                    interval to send event of btn down, drag and up
+        Returns: None
+        """
+        mouse.moveTo(*coord)
+        mouse.dragTo(*dest_coord, duration=interval, button="right")
+
     def doubleClickDragMouseButtonLeft(self, coord, dest_coord, interval=0.5):
         """Double-click and drag the left mouse button without modifiers
         pressed.
