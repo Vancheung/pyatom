@@ -228,3 +228,9 @@ class NativeUIElement(
             return performSpecifiedAction
         else:
             return super(NativeUIElement, self).__getattr__(name)
+
+    def __eq__(self, other):
+        return self.ref == other.ref
+
+    def __hash__(self):
+        return hash(self.ref)
